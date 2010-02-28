@@ -448,7 +448,7 @@ private:
         light = mSceneMgr->createLight("Light3");
         light->setType(Light::LT_POINT);
         light->setPosition(Vector3(0, 150, -250));
-        light->setDiffcularColour(ColourValue::Red);
+        light->setSpecularColour(ColourValue::Red);
 
         light = mSceneMgr->createLight("Light2");
         light->setType(Light::LT_POINT);
