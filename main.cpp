@@ -60,9 +60,10 @@ public:
 
         // not moving at first
         mCharDirection = Vector3::ZERO;
+        mCowDirection = Vector3::ZERO;
 
         // Set idle animation
-        mAnimationState = ent->getAnimationState("Idle");
+        mAnimationState = ent->getAnimationState("Walk");
         mAnimationState->setLoop(true);
         mAnimationState->setEnabled(true);
     }
@@ -89,6 +90,7 @@ public:
         //mJoy->capture();
 
         mCamNode->translate(mCharDirection * evt.timeSinceLastFrame, Node::TS_LOCAL);
+        mNode->translate(mCowDirection * evt.timeSinceLastFrame, Node::TS_LOCAL);
 
         mAnimationState->addTime(evt.timeSinceLastFrame);
 
@@ -104,32 +106,52 @@ public:
             mContinue = false;
             break;
 
+
         case OIS::KC_UP:
+            mCowDirection.z = mMove;
+            break;
+
+        case OIS::KC_DOWN:
+            mCowDirection.z = -mMove;
+            break;
+
+        case OIS::KC_LEFT:
+            mCowDirection.x = mMove;
+            break;
+
+        case OIS::KC_RIGHT:
+            mCowDirection.x = -mMove;
+            break;
+
+        case OIS::KC_PGDOWN:
+            mCowDirection.y = -mMove;
+            break;
+
+        case OIS::KC_PGUP:
+            mCowDirection.y = mMove;
+            break;
+
+
         case OIS::KC_W:
             mCharDirection.z = -mMove;
             break;
 
-        case OIS::KC_DOWN:
         case OIS::KC_S:
             mCharDirection.z = mMove;
             break;
 
-        case OIS::KC_LEFT:
         case OIS::KC_A:
             mCharDirection.x = -mMove;
             break;
 
-        case OIS::KC_RIGHT:
         case OIS::KC_D:
             mCharDirection.x = mMove;
             break;
 
-        case OIS::KC_PGDOWN:
         case OIS::KC_E:
             mCharDirection.y = -mMove;
             break;
 
-        case OIS::KC_PGUP:
         case OIS::KC_Q:
             mCharDirection.y = mMove;
             break;
@@ -145,22 +167,32 @@ public:
         switch (arg.key)
         {
         case OIS::KC_UP:
-        case OIS::KC_W:
         case OIS::KC_DOWN:
+            mCowDirection.z = 0;
+            break;
+
+        case OIS::KC_LEFT:
+        case OIS::KC_RIGHT:
+            mCowDirection.x = 0;
+            break;
+
+        case OIS::KC_PGDOWN:
+        case OIS::KC_PGUP:
+            mCowDirection.y = 0;
+            break;
+
+
+        case OIS::KC_W:
         case OIS::KC_S:
             mCharDirection.z = 0;
             break;
 
-        case OIS::KC_LEFT:
         case OIS::KC_A:
-        case OIS::KC_RIGHT:
         case OIS::KC_D:
             mCharDirection.x = 0;
             break;
 
-        case OIS::KC_PGDOWN:
         case OIS::KC_E:
-        case OIS::KC_PGUP:
         case OIS::KC_Q:
             mCharDirection.y = 0;
             break;
@@ -174,6 +206,11 @@ public:
     // MouseListener
     bool mouseMoved(const OIS::MouseEvent &arg)
     {
+        if (arg.state.buttonDown(OIS::MB_Left))
+        {
+            mNode->yaw(Degree(-mRotate * arg.state.X.rel), Node::TS_WORLD);
+            mNode->pitch(Degree(-mRotate * arg.state.Y.rel), Node::TS_LOCAL);
+        }
         if (arg.state.buttonDown(OIS::MB_Right))
         {
             mCamNode->yaw(Degree(-mRotate * arg.state.X.rel), Node::TS_WORLD);
@@ -215,6 +252,7 @@ private:
 
     bool mContinue;        // Whether to continue rendering or not
     Vector3 mCharDirection;     // Value to move in the correct direction
+    Vector3 mCowDirection;     // Value to move in the correct direction
 
 
     Real mDistance;                  // The distance the object has left to travel
@@ -342,8 +380,20 @@ private:
         Light *light = mSceneMgr->createLight("Light1");
         light->setType(Light::LT_POINT);
         light->setPosition(Vector3(250, 150, 250));
-        light->setDiffuseColour(ColourValue::White);
-        light->setSpecularColour(ColourValue::White);
+        light->setDiffuseColour(ColourValue::Red);
+        light->setSpecularColour(ColourValue::Red);
+
+        light = mSceneMgr->createLight("Light2");
+        light->setType(Light::LT_POINT);
+        light->setPosition(Vector3(-250, 150, 250));
+        light->setDiffuseColour(ColourValue::Blue);
+        light->setSpecularColour(ColourValue::Blue);
+
+        light = mSceneMgr->createLight("Light3");
+        light->setType(Light::LT_POINT);
+        light->setPosition(Vector3(0, 150, -250));
+        light->setDiffuseColour(ColourValue::Green);
+        light->setSpecularColour(ColourValue::Green);
 
         Plane plane(Vector3::UNIT_Y, 0);
         MeshManager::getSingleton().createPlane("ground",
