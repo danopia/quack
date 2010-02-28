@@ -11762,5 +11762,5 @@
 			</boneassignments>
 		</submesh>
 	</submeshes>
-	<skeletonlink name="Cow.skeleton"/>
+	<skeletonlink name="cow.skeleton"/>
 </mesh>

@@ -86,7 +86,7 @@
 		</bone>
 		<bone id="2" name="Bone.019">
 			<position x="-0.000000" y="3.282401" z="-0.000000"/>
-			<rotation angle="0.902516">
+			<rotation angle="0.902515">
 				<axis x="0.661321" y="0.228924" z="-0.714316"/>
 			</rotation>
 		</bone>
@@ -103,8 +103,8 @@
 			</rotation>
 		</bone>
 		<bone id="15" name="Bone.004">
-			<position x="-0.000001" y="2.743051" z="-0.000000"/>
-			<rotation angle="0.799096">
+			<position x="-0.000000" y="2.743049" z="0.000000"/>
+			<rotation angle="0.799095">
 				<axis x="-0.190494" y="0.559058" z="-0.806949"/>
 			</rotation>
 		</bone>
@@ -115,15 +115,15 @@
 			</rotation>
 		</bone>
 		<bone id="14" name="Bone.025">
-			<position x="-0.000000" y="2.371886" z="0.000000"/>
+			<position x="0.000000" y="2.371887" z="-0.000000"/>
 			<rotation angle="0.000000">
-				<axis x="-0.000000" y="-1.000000" z="0.000000"/>
+				<axis x="0.000000" y="-1.000000" z="0.000000"/>
 			</rotation>
 		</bone>
 		<bone id="23" name="Bone.024">
-			<position x="-0.000000" y="2.371888" z="-0.000000"/>
+			<position x="-0.000000" y="2.371889" z="-0.000000"/>
 			<rotation angle="0.000000">
-				<axis x="-0.565827" y="0.796857" z="-0.211798"/>
+				<axis x="0.000000" y="1.000000" z="-0.000000"/>
 			</rotation>
 		</bone>
 		<bone id="3" name="Bone.013">
@@ -133,21 +133,21 @@
 			</rotation>
 		</bone>
 		<bone id="18" name="Bone.009">
-			<position x="0.000000" y="2.371895" z="-0.000000"/>
+			<position x="-0.000000" y="2.371895" z="-0.000000"/>
 			<rotation angle="0.000000">
-				<axis x="-0.575863" y="0.427601" z="0.696806"/>
+				<axis x="-0.519715" y="0.434061" z="0.735858"/>
 			</rotation>
 		</bone>
 		<bone id="27" name="Bone.006">
-			<position x="0.000000" y="2.371889" z="-0.000000"/>
+			<position x="0.000000" y="2.371889" z="-0.000001"/>
 			<rotation angle="0.000000">
-				<axis x="-0.000005" y="1.000000" z="0.000000"/>
+				<axis x="0.000000" y="1.000000" z="-0.000000"/>
 			</rotation>
 		</bone>
 		<bone id="26" name="Bone.005">
-			<position x="-0.000000" y="2.371888" z="0.000000"/>
+			<position x="0.000000" y="2.371887" z="0.000000"/>
 			<rotation angle="0.000000">
-				<axis x="-0.000000" y="1.000000" z="0.000000"/>
+				<axis x="0.000000" y="1.000000" z="0.000000"/>
 			</rotation>
 		</bone>
 		<bone id="10" name="Bone.014">
@@ -159,19 +159,19 @@
 		<bone id="9" name="Bone.015">
 			<position x="-0.000000" y="0.948757" z="-0.000000"/>
 			<rotation angle="0.000000">
-				<axis x="-0.299700" y="-0.952968" z="0.045067"/>
+				<axis x="-0.627712" y="0.765491" z="0.141425"/>
 			</rotation>
 		</bone>
 		<bone id="8" name="Bone.016">
 			<position x="-0.000000" y="0.948755" z="-0.000000"/>
 			<rotation angle="0.000000">
-				<axis x="-0.000400" y="1.000000" z="0.000060"/>
+				<axis x="-0.000073" y="-1.000000" z="0.000017"/>
 			</rotation>
 		</bone>
 		<bone id="7" name="Bone.017">
-			<position x="-0.000000" y="0.830161" z="-0.000000"/>
+			<position x="0.000000" y="0.830161" z="-0.000000"/>
 			<rotation angle="0.000000">
-				<axis x="-0.980083" y="-0.133167" z="0.147321"/>
+				<axis x="-0.963001" y="-0.159385" z="0.217313"/>
 			</rotation>
 		</bone>
 	</bones>
@@ -204,4 +204,50 @@
 		<boneparent bone="Bone.016" parent="Bone.015" />
 		<boneparent bone="Bone.017" parent="Bone.016" />
 	</bonehierarchy>
+	<animations>
+		<animation name="Idle" length="0.040000">
+			<tracks>
+				<track bone="Bone.003">
+					<keyframes>
+						<keyframe time="0.000000">
+							<translate x="0.000000" y="0.000000" z="0.000000"/>
+							<rotate angle="0.631804">
+								<axis x="1.000000" y="0.000001" z="-0.000000"/>
+							</rotate>
+							<scale x="1.000000" y="1.000000" z="1.000000"/>
+						</keyframe>
+						<keyframe time="0.040000">
+							<translate x="0.000000" y="0.000000" z="0.000000"/>
+							<rotate angle="1.194036">
+								<axis x="1.000000" y="0.000001" z="-0.000000"/>
+							</rotate>
+							<scale x="1.000000" y="1.000000" z="1.000000"/>
+						</keyframe>
+					</keyframes>
+				</track>
+			</tracks>
+		</animation>
+		<animation name="Walking" length="0.040000">
+			<tracks>
+				<track bone="Bone.003">
+					<keyframes>
+						<keyframe time="0.000000">
+							<translate x="0.000000" y="0.000000" z="0.000000"/>
+							<rotate angle="0.631804">
+								<axis x="1.000000" y="0.000001" z="-0.000000"/>
+							</rotate>
+							<scale x="1.000000" y="1.000000" z="1.000000"/>
+						</keyframe>
+						<keyframe time="0.040000">
+							<translate x="0.000000" y="0.000000" z="0.000000"/>
+							<rotate angle="1.194036">
+								<axis x="1.000000" y="0.000001" z="-0.000000"/>
+							</rotate>
+							<scale x="1.000000" y="1.000000" z="1.000000"/>
+						</keyframe>
+					</keyframes>
+				</track>
+			</tracks>
+		</animation>
+	</animations>
 </skeleton>

@@ -1,9 +1,10 @@
 #include <Ogre.h>
-#include <OIS/OIS.h>
-//#include <CEGUI/CEGUI.h>
-//#include <CEGUI/RendererModules/Ogre/CEGUIOgreRenderer.h>
-
 using namespace Ogre;
+
+#include <OIS/OIS.h>
+
+#include <deque>
+//using namespace std;
 
 class ExitListener : public FrameListener
 {
@@ -28,8 +29,9 @@ class Application;
 class ApplicationListener : public FrameListener, public OIS::KeyListener, public OIS::MouseListener, public OIS::JoyStickListener
 {
 public:
-    ApplicationListener(Root *root = 0, OIS::InputManager *inputManager = 0, Application *app = 0, Camera *camera = 0, SceneManager *sceneMgr = 0)
-        : mRoot(root), mInputManager(inputManager), mApp(app), mCamera(camera), mSceneMgr(sceneMgr)
+    ApplicationListener(Root *root, OIS::InputManager *inputManager, Application *app, Camera *camera, SceneManager *sceneMgr, SceneNode *sn,
+        Entity *ent, std::deque<Vector3> &walk)
+        : mRoot(root), mInputManager(inputManager), mApp(app), mCamera(camera), mSceneMgr(sceneMgr), mNode(sn), mEntity(ent), mWalkList(walk)
     {
         /*try
         {*/
@@ -57,7 +59,12 @@ public:
         mContinue = true;
 
         // not moving at first
-        mDirection = Vector3::ZERO;
+        mCharDirection = Vector3::ZERO;
+
+        // Set idle animation
+        mAnimationState = ent->getAnimationState("Idle");
+        mAnimationState->setLoop(true);
+        mAnimationState->setEnabled(true);
     }
 
     ~ApplicationListener()
@@ -67,6 +74,13 @@ public:
         //mInputManager->destroyInputObject(mJoy);
     }
 
+    // This function is called to start the object moving to the next position
+    // in mWalkList.
+    bool nextLocation()
+    {
+        return true;
+    }
+
     // FrameListener
     bool frameStarted(const FrameEvent& evt)
     {
@@ -74,7 +88,9 @@ public:
         mMouse->capture();
         //mJoy->capture();
 
-        mCamNode->translate(mDirection * evt.timeSinceLastFrame, Node::TS_LOCAL);
+        mCamNode->translate(mCharDirection * evt.timeSinceLastFrame, Node::TS_LOCAL);
+
+        mAnimationState->addTime(evt.timeSinceLastFrame);
 
         return mContinue;
     }
@@ -90,32 +106,32 @@ public:
 
         case OIS::KC_UP:
         case OIS::KC_W:
-            mDirection.z = -mMove;
+            mCharDirection.z = -mMove;
             break;
 
         case OIS::KC_DOWN:
         case OIS::KC_S:
-            mDirection.z = mMove;
+            mCharDirection.z = mMove;
             break;
 
         case OIS::KC_LEFT:
         case OIS::KC_A:
-            mDirection.x = -mMove;
+            mCharDirection.x = -mMove;
             break;
 
         case OIS::KC_RIGHT:
         case OIS::KC_D:
-            mDirection.x = mMove;
+            mCharDirection.x = mMove;
             break;
 
         case OIS::KC_PGDOWN:
         case OIS::KC_E:
-            mDirection.y = -mMove;
+            mCharDirection.y = -mMove;
             break;
 
         case OIS::KC_PGUP:
         case OIS::KC_Q:
-            mDirection.y = mMove;
+            mCharDirection.y = mMove;
             break;
 
         default:
@@ -132,21 +148,21 @@ public:
         case OIS::KC_W:
         case OIS::KC_DOWN:
         case OIS::KC_S:
-            mDirection.z = 0;
+            mCharDirection.z = 0;
             break;
 
         case OIS::KC_LEFT:
         case OIS::KC_A:
         case OIS::KC_RIGHT:
         case OIS::KC_D:
-            mDirection.x = 0;
+            mCharDirection.x = 0;
             break;
 
         case OIS::KC_PGDOWN:
         case OIS::KC_E:
         case OIS::KC_PGUP:
         case OIS::KC_Q:
-            mDirection.y = 0;
+            mCharDirection.y = 0;
             break;
 
         default:
@@ -198,7 +214,20 @@ private:
     Camera *mCamera;   // The camera
 
     bool mContinue;        // Whether to continue rendering or not
-    Vector3 mDirection;     // Value to move in the correct direction
+    Vector3 mCharDirection;     // Value to move in the correct direction
+
+
+    Real mDistance;                  // The distance the object has left to travel
+    Vector3 mDirection;              // The direction the object is moving
+    Vector3 mDestination;            // The destination the object is moving towards
+
+    AnimationState *mAnimationState; // The current animation state of the object
+
+    Entity *mEntity;                 // The Entity we are animating
+    SceneNode *mNode;                // The SceneNode that the Entity is attached to
+    std::deque<Vector3> mWalkList;   // The list of points we are walking to
+
+    Real mWalkSpeed;                 // The speed at which the object is moving
 };
 
 class Application
@@ -234,6 +263,10 @@ private:
     SceneManager *mSceneMgr;
     Camera *mCamera;
     Viewport *mViewport;
+
+    Entity *mEntity;                // The entity of the object we are animating
+    SceneNode *mNode;               // The SceneNode of the object we are moving
+    std::deque<Vector3> mWalkList;  // A deque containing the waypoints
 
     void createRoot()
     {
@@ -302,13 +335,8 @@ private:
         SceneNode *node = mSceneMgr->getRootSceneNode()->createChildSceneNode("CamNode", Vector3(0, 200, 400));
         node->attachObject(mCamera);
 
-        mSceneMgr->setAmbientLight(ColourValue(0.25, 0.25, 0.25));
+        mSceneMgr->setAmbientLight(ColourValue(0.5, 0.5, 0.5));
         mSceneMgr->setShadowTechnique(SHADOWTYPE_STENCIL_ADDITIVE);
-
-        Entity *ent = mSceneMgr->createEntity("Cow", "cow.mesh");
-        ent->setCastShadows(true);
-        node = mSceneMgr->getRootSceneNode()->createChildSceneNode("CowNode");
-        node->attachObject(ent);
 
         // create the light
         Light *light = mSceneMgr->createLight("Light1");
@@ -321,10 +349,19 @@ private:
         MeshManager::getSingleton().createPlane("ground",
             ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME, plane,
             1500,1500,20,20,true,1,5,5,Vector3::UNIT_Z);
-        ent = mSceneMgr->createEntity("GroundEntity", "ground");
+        Entity *ent = mSceneMgr->createEntity("GroundEntity", "ground");
         mSceneMgr->getRootSceneNode()->createChildSceneNode()->attachObject(ent);
         ent->setMaterialName("Rockwall");
         ent->setCastShadows(false);
+
+        mEntity = mSceneMgr->createEntity("Cow", "cow.mesh");
+        mEntity->setCastShadows(true);
+        mNode = mSceneMgr->getRootSceneNode()->createChildSceneNode("CowNode", Vector3(0.0f, 0.0f, 25.0f));
+        mNode->attachObject(mEntity);
+
+        // Create the walking list
+        mWalkList.push_back(Vector3(550.0f,  0.0f,  50.0f ));
+        mWalkList.push_back(Vector3(-100.0f,  0.0f, -200.0f));
     }
 
     void setupInputSystem()
@@ -342,7 +379,7 @@ private:
 
     void createFrameListener()
     {
-        mListener = new ApplicationListener(mRoot, mInputManager, this, mCamera, mSceneMgr);
+        mListener = new ApplicationListener(mRoot, mInputManager, this, mCamera, mSceneMgr, mNode, mEntity, mWalkList);
         mRoot->addFrameListener(mListener);
     }
 
