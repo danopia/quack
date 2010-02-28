@@ -23,11 +23,13 @@ private:
     OIS::Keyboard *mKeyboard;
 };
 
+class Application;
+
 class ApplicationListener : public FrameListener, public OIS::KeyListener, public OIS::MouseListener, public OIS::JoyStickListener
 {
 public:
-    ApplicationListener(Root *root = 0, OIS::InputManager *inputManager = 0)
-        : mRoot(root), mInputManager(inputManager)
+    ApplicationListener(Root *root = 0, OIS::InputManager *inputManager = 0, Application *app = 0, Camera *camera = 0, SceneManager *sceneMgr = 0)
+        : mRoot(root), mInputManager(inputManager), mApp(app), mCamera(camera), mSceneMgr(sceneMgr)
     {
         /*try
         {*/
@@ -44,7 +46,18 @@ public:
         mMouse->setEventCallback(this);
         //mJoy->setEventCallback(this);
 
+        // Populate the camera container
+        mCamNode = mCamera->getParentSceneNode();
+
+        // set the rotation and move speed
+        mRotate = 0.13;
+        mMove = 250;
+
+        // continue rendering
         mContinue = true;
+
+        // not moving at first
+        mDirection = Vector3::ZERO;
     }
 
     ~ApplicationListener()
@@ -61,6 +74,8 @@ public:
         mMouse->capture();
         //mJoy->capture();
 
+        mCamNode->translate(mDirection * evt.timeSinceLastFrame, Node::TS_LOCAL);
+
         return mContinue;
     }
 
@@ -72,6 +87,37 @@ public:
         case OIS::KC_ESCAPE:
             mContinue = false;
             break;
+
+        case OIS::KC_UP:
+        case OIS::KC_W:
+            mDirection.z = -mMove;
+            break;
+
+        case OIS::KC_DOWN:
+        case OIS::KC_S:
+            mDirection.z = mMove;
+            break;
+
+        case OIS::KC_LEFT:
+        case OIS::KC_A:
+            mDirection.x = -mMove;
+            break;
+
+        case OIS::KC_RIGHT:
+        case OIS::KC_D:
+            mDirection.x = mMove;
+            break;
+
+        case OIS::KC_PGDOWN:
+        case OIS::KC_E:
+            mDirection.y = -mMove;
+            break;
+
+        case OIS::KC_PGUP:
+        case OIS::KC_Q:
+            mDirection.y = mMove;
+            break;
+
         default:
             break;
         }
@@ -80,12 +126,43 @@ public:
 
     bool keyReleased(const OIS::KeyEvent &arg)
     {
+        switch (arg.key)
+        {
+        case OIS::KC_UP:
+        case OIS::KC_W:
+        case OIS::KC_DOWN:
+        case OIS::KC_S:
+            mDirection.z = 0;
+            break;
+
+        case OIS::KC_LEFT:
+        case OIS::KC_A:
+        case OIS::KC_RIGHT:
+        case OIS::KC_D:
+            mDirection.x = 0;
+            break;
+
+        case OIS::KC_PGDOWN:
+        case OIS::KC_E:
+        case OIS::KC_PGUP:
+        case OIS::KC_Q:
+            mDirection.y = 0;
+            break;
+
+        default:
+            break;
+        } // switch
         return true;
     }
 
     // MouseListener
     bool mouseMoved(const OIS::MouseEvent &arg)
     {
+        if (arg.state.buttonDown(OIS::MB_Right))
+        {
+            mCamNode->yaw(Degree(-mRotate * arg.state.X.rel), Node::TS_WORLD);
+            mCamNode->pitch(Degree(-mRotate * arg.state.Y.rel), Node::TS_LOCAL);
+        }
         return true;
     }
 
@@ -105,11 +182,20 @@ public:
     bool axisMoved(const OIS::JoyStickEvent &arg, int axis) { return true; }
 
 private:
+    Application *mApp;
+
     Root *mRoot;
     OIS::InputManager *mInputManager;
     OIS::Keyboard *mKeyboard;
     OIS::Mouse *mMouse;
     OIS::JoyStick *mJoy;
+
+    Real mRotate;          // The rotate constant
+    Real mMove;            // The movement constant
+
+    SceneManager *mSceneMgr;   // The current SceneManager
+    SceneNode *mCamNode;   // The SceneNode the camera is currently attached to
+    Camera *mCamera;   // The camera
 
     bool mContinue;        // Whether to continue rendering or not
     Vector3 mDirection;     // Value to move in the correct direction
@@ -144,6 +230,10 @@ private:
     Root *mRoot;
     OIS::InputManager *mInputManager;
     ApplicationListener *mListener;
+
+    SceneManager *mSceneMgr;
+    Camera *mCamera;
+    Viewport *mViewport;
 
     void createRoot()
     {
@@ -204,9 +294,26 @@ private:
 
     void setupScene()
     {
-        SceneManager *mgr = mRoot->createSceneManager(ST_GENERIC, "Default SceneManager");
-        Camera *cam = mgr->createCamera("Camera");
-        Viewport *vp = mRoot->getAutoCreatedWindow()->addViewport(cam);
+        mSceneMgr = mRoot->createSceneManager(ST_GENERIC, "Default SceneManager");
+
+        mCamera = mSceneMgr->createCamera("Camera");
+        mViewport = mRoot->getAutoCreatedWindow()->addViewport(mCamera);
+
+        SceneNode *node = mSceneMgr->getRootSceneNode()->createChildSceneNode("CamNode", Vector3(0, 200, 400));
+        node->attachObject(mCamera);
+
+        mSceneMgr->setAmbientLight(ColourValue(0.25, 0.25, 0.25));
+
+        Entity *ent = mSceneMgr->createEntity("Cow", "cow.mesh");
+        node = mSceneMgr->getRootSceneNode()->createChildSceneNode("CowNode");
+        node->attachObject(ent);
+
+        // create the light
+        Light *light = mSceneMgr->createLight("Light1");
+        light->setType(Light::LT_POINT);
+        light->setPosition(Vector3(250, 150, 250));
+        light->setDiffuseColour(ColourValue::White);
+        light->setSpecularColour(ColourValue::White);
     }
 
     void setupInputSystem()
@@ -224,7 +331,7 @@ private:
 
     void createFrameListener()
     {
-        mListener = new ApplicationListener(mRoot, mInputManager);
+        mListener = new ApplicationListener(mRoot, mInputManager, this, mCamera, mSceneMgr);
         mRoot->addFrameListener(mListener);
     }
 

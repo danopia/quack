@@ -1,9 +1,7 @@
 # depslib dependency file v1.0
-1267304047 source:/home/danopia/Dev/DuckGame/main.cpp
+1267326284 source:/home/danopia/Dev/DuckGame/main.cpp
 	<Ogre.h>
 	<OIS/OIS.h>
-	<CEGUI/CEGUI.h>
-	<CEGUI/RendererModules/Ogre/CEGUIOgreRenderer.h>
 	"windows.h"
 
 1267202336 /usr/local/include/OGRE/Ogre.h

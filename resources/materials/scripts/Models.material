@@ -1,0 +1,15 @@
+material Cow
+{
+	technique
+	{
+		pass
+		{
+			texture_unit
+			{
+				texture cow.png
+			}
+		}
+	}
+}
+
+
