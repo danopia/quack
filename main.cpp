@@ -5,22 +5,66 @@
 
 using namespace Ogre;
 
-class ExitListener : public FrameListener
+// Don't add this to the project
+class ApplicationListener : public FrameListener, public OIS::KeyListener, public OIS::MouseListener, public OIS::JoyStickListener
 {
 public:
-    ExitListener(OIS::Keyboard *keyboard)
-        : mKeyboard(keyboard)
+    ApplicationListener(Root *root = 0, OIS::InputManager *inputManager = 0)
+        : mRoot(root), mInputManager(inputManager)
     {
+        try
+        {
+            mKeyboard = static_cast<OIS::Keyboard*>(mInputManager->createInputObject(OIS::OISKeyboard, false));
+            mMouse = static_cast<OIS::Mouse*>(mInputManager->createInputObject(OIS::OISMouse, false));
+            //mJoy = static_cast<OIS::JoyStick*>(mInputManager->createInputObject(OIS::OISJoyStick, false));
+        }
+        catch (const OIS::Exception &e)
+        {
+            throw new Exception(42, e.eText, "Application::setupInputSystem");
+        }
+
+        mMouse->setEventCallback(this);
+        mKeyboard->setEventCallback(this);
+        //mJoy->setEventCallback(this);
     }
 
+    ~ApplicationListener()
+    {
+        mInputManager->destroyInputObject(mKeyboard);
+        mInputManager->destroyInputObject(mMouse);
+        //mInputManager->destroyInputObject(mJoy);
+    }
+
+    // FrameListener
     bool frameStarted(const FrameEvent& evt)
     {
         mKeyboard->capture();
+        mMouse->capture();
+        //mJoy->capture();
+
         return !mKeyboard->isKeyDown(OIS::KC_ESCAPE);
     }
 
+    // KeyListener
+    virtual bool keyPressed(const OIS::KeyEvent &arg) { return true; }
+    virtual bool keyReleased(const OIS::KeyEvent &arg) { return true; }
+
+    // MouseListener
+    virtual bool mouseMoved(const OIS::MouseEvent &arg) { return true; }
+    virtual bool mousePressed(const OIS::MouseEvent &arg, OIS::MouseButtonID id) { return true; }
+    virtual bool mouseReleased(const OIS::MouseEvent &arg, OIS::MouseButtonID id) { return true; }
+
+    // JoystickListener
+    virtual bool buttonPressed(const OIS::JoyStickEvent &arg, int button) { return true; }
+    virtual bool buttonReleased(const OIS::JoyStickEvent &arg, int button) { return true; }
+    virtual bool axisMoved(const OIS::JoyStickEvent &arg, int axis) { return true; }
+
 private:
+    Root *mRoot;
+    OIS::InputManager *mInputManager;
     OIS::Keyboard *mKeyboard;
+    OIS::Mouse *mMouse;
+    OIS::JoyStick *mJoy;
 };
 
 class Application
@@ -42,21 +86,20 @@ public:
 
     ~Application()
     {
-        mInputManager->destroyInputObject(mKeyboard);
+        delete mListener;
+
         OIS::InputManager::destroyInputSystem(mInputManager);
 
         CEGUI::OgreRenderer::destroySystem();
 
-        delete mListener;
         delete mRoot;
     }
 
 private:
     Root *mRoot;
-    OIS::Keyboard *mKeyboard;
     OIS::InputManager *mInputManager;
     CEGUI::OgreRenderer *mRenderer;
-    ExitListener *mListener;
+    ApplicationListener *mListener;
 
     void createRoot()
     {
@@ -134,16 +177,16 @@ private:
         pl.insert(std::make_pair(std::string("WINDOW"), windowHndStr.str()));
         mInputManager = OIS::InputManager::createInputSystem(pl);
 
-        try
+        /*try
         {
             mKeyboard = static_cast<OIS::Keyboard*>(mInputManager->createInputObject(OIS::OISKeyboard, false));
-            //mMouse = static_cast<OIS::Mouse*>(mInputManager->createInputObject(OIS::OISMouse, false));
+            mMouse = static_cast<OIS::Mouse*>(mInputManager->createInputObject(OIS::OISMouse, false));
             //mJoy = static_cast<OIS::JoyStick*>(mInputManager->createInputObject(OIS::OISJoyStick, false));
         }
         catch (const OIS::Exception &e)
         {
             throw new Exception(42, e.eText, "Application::setupInputSystem");
-        }
+        }*/
     }
 
     void setupCEGUI()
@@ -156,7 +199,7 @@ private:
 
     void createFrameListener()
     {
-        mListener = new ExitListener(mKeyboard);
+        mListener = new ApplicationListener(mRoot, mInputManager);
         mRoot->addFrameListener(mListener);
     }
 
