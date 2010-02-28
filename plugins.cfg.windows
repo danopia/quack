@@ -1,0 +1,13 @@
+# I have no idea where they are
+PluginFolder=.
+
+# But these are what we want
+Plugin=RenderSystem_Direct3D7
+Plugin=RenderSystem_Direct3D9
+Plugin=RenderSystem_GL
+#Plugin=Plugin_ParticleFX
+#Plugin=Plugin_BSPSceneManager
+Plugin=Plugin_OctreeSceneManager
+#Plugin=Plugin_CgProgramManager
+
+

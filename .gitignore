@@ -5,3 +5,4 @@ bin
 obj
 ogre.cfg
 quack
+plugins.cfg
