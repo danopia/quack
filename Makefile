@@ -6,7 +6,7 @@ LD = g++
 LDFLAGS = $(shell pkg-config --libs $(LIBS))
 
 all:
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) -o Duckgame main.cpp
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) -o quack main.cpp
 
 clean:
-	rm -f SampleApp
+	rm -f quack

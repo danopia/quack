@@ -1,7 +1,7 @@
-CEGUI.log
-DuckGame.layout
-Ogre.log
+Quack.layout
+Quack.depend
+*.log
 bin
 obj
 ogre.cfg
-Duckgame
+quack

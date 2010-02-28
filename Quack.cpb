@@ -30,16 +30,14 @@
 		</Build>
 		<Compiler>
 			<Add option="-Wall" />
+			<Add directory="/usr/local/include/OGRE" />
 		</Compiler>
 		<Linker>
 			<Add library="OgreMain" />
 			<Add library="GL" />
 			<Add library="OIS" />
-			<Add library="CEGUI" />
 		</Linker>
-		<Unit filename="game.c">
-			<Option compilerVar="CC" />
-		</Unit>
+		<Unit filename="main.cpp" />
 		<Unit filename="plugins.cfg">
 			<Option target="Release" />
 		</Unit>
