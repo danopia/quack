@@ -276,7 +276,7 @@ private:
 
     void createRenderWindow()
     {
-        mRoot->initialise(true, "Tutorial Render Window");
+        mRoot->initialise(true, "Duckinator's FPS Game of Failure");
 
         //// Do not add this to the application
         //mRoot->initialise(false);
@@ -303,8 +303,10 @@ private:
         node->attachObject(mCamera);
 
         mSceneMgr->setAmbientLight(ColourValue(0.25, 0.25, 0.25));
+        mSceneMgr->setShadowTechnique(SHADOWTYPE_STENCIL_ADDITIVE);
 
         Entity *ent = mSceneMgr->createEntity("Cow", "cow.mesh");
+        ent->setCastShadows(true);
         node = mSceneMgr->getRootSceneNode()->createChildSceneNode("CowNode");
         node->attachObject(ent);
 
@@ -314,6 +316,15 @@ private:
         light->setPosition(Vector3(250, 150, 250));
         light->setDiffuseColour(ColourValue::White);
         light->setSpecularColour(ColourValue::White);
+
+        Plane plane(Vector3::UNIT_Y, 0);
+        MeshManager::getSingleton().createPlane("ground",
+            ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME, plane,
+            1500,1500,20,20,true,1,5,5,Vector3::UNIT_Z);
+        ent = mSceneMgr->createEntity("GroundEntity", "ground");
+        mSceneMgr->getRootSceneNode()->createChildSceneNode()->attachObject(ent);
+        ent->setMaterialName("Rockwall");
+        ent->setCastShadows(false);
     }
 
     void setupInputSystem()
