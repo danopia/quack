@@ -1,31 +1,50 @@
 #include <Ogre.h>
 #include <OIS/OIS.h>
-#include <CEGUI/CEGUI.h>
-#include <CEGUI/RendererModules/Ogre/CEGUIOgreRenderer.h>
+//#include <CEGUI/CEGUI.h>
+//#include <CEGUI/RendererModules/Ogre/CEGUIOgreRenderer.h>
 
 using namespace Ogre;
 
-// Don't add this to the project
+class ExitListener : public FrameListener
+{
+public:
+    ExitListener(OIS::Keyboard *keyboard)
+        : mKeyboard(keyboard)
+    {
+    }
+
+    bool frameStarted(const FrameEvent& evt)
+    {
+        mKeyboard->capture();
+        return !mKeyboard->isKeyDown(OIS::KC_ESCAPE);
+    }
+
+private:
+    OIS::Keyboard *mKeyboard;
+};
+
 class ApplicationListener : public FrameListener, public OIS::KeyListener, public OIS::MouseListener, public OIS::JoyStickListener
 {
 public:
     ApplicationListener(Root *root = 0, OIS::InputManager *inputManager = 0)
         : mRoot(root), mInputManager(inputManager)
     {
-        try
-        {
-            mKeyboard = static_cast<OIS::Keyboard*>(mInputManager->createInputObject(OIS::OISKeyboard, false));
-            mMouse = static_cast<OIS::Mouse*>(mInputManager->createInputObject(OIS::OISMouse, false));
+        /*try
+        {*/
+            mKeyboard = static_cast<OIS::Keyboard*>(mInputManager->createInputObject(OIS::OISKeyboard, true));
+            mMouse = static_cast<OIS::Mouse*>(mInputManager->createInputObject(OIS::OISMouse, true));
             //mJoy = static_cast<OIS::JoyStick*>(mInputManager->createInputObject(OIS::OISJoyStick, false));
-        }
+        /*}
         catch (const OIS::Exception &e)
         {
             throw new Exception(42, e.eText, "Application::setupInputSystem");
-        }
+        }*/
 
-        mMouse->setEventCallback(this);
         mKeyboard->setEventCallback(this);
+        mMouse->setEventCallback(this);
         //mJoy->setEventCallback(this);
+
+        mContinue = true;
     }
 
     ~ApplicationListener()
@@ -42,22 +61,48 @@ public:
         mMouse->capture();
         //mJoy->capture();
 
-        return !mKeyboard->isKeyDown(OIS::KC_ESCAPE);
+        return mContinue;
     }
 
     // KeyListener
-    virtual bool keyPressed(const OIS::KeyEvent &arg) { return true; }
-    virtual bool keyReleased(const OIS::KeyEvent &arg) { return true; }
+    bool keyPressed(const OIS::KeyEvent &arg)
+    {
+        switch (arg.key)
+        {
+        case OIS::KC_ESCAPE:
+            mContinue = false;
+            break;
+        default:
+            break;
+        }
+        return mContinue;
+    }
+
+    bool keyReleased(const OIS::KeyEvent &arg)
+    {
+        return true;
+    }
 
     // MouseListener
-    virtual bool mouseMoved(const OIS::MouseEvent &arg) { return true; }
-    virtual bool mousePressed(const OIS::MouseEvent &arg, OIS::MouseButtonID id) { return true; }
-    virtual bool mouseReleased(const OIS::MouseEvent &arg, OIS::MouseButtonID id) { return true; }
+    bool mouseMoved(const OIS::MouseEvent &arg)
+    {
+        return true;
+    }
+
+    bool mousePressed(const OIS::MouseEvent &arg, OIS::MouseButtonID id)
+    {
+        return true;
+    }
+
+    bool mouseReleased(const OIS::MouseEvent &arg, OIS::MouseButtonID id)
+    {
+        return true;
+    }
 
     // JoystickListener
-    virtual bool buttonPressed(const OIS::JoyStickEvent &arg, int button) { return true; }
-    virtual bool buttonReleased(const OIS::JoyStickEvent &arg, int button) { return true; }
-    virtual bool axisMoved(const OIS::JoyStickEvent &arg, int axis) { return true; }
+    bool buttonPressed(const OIS::JoyStickEvent &arg, int button) { return true; }
+    bool buttonReleased(const OIS::JoyStickEvent &arg, int button) { return true; }
+    bool axisMoved(const OIS::JoyStickEvent &arg, int axis) { return true; }
 
 private:
     Root *mRoot;
@@ -65,6 +110,9 @@ private:
     OIS::Keyboard *mKeyboard;
     OIS::Mouse *mMouse;
     OIS::JoyStick *mJoy;
+
+    bool mContinue;        // Whether to continue rendering or not
+    Vector3 mDirection;     // Value to move in the correct direction
 };
 
 class Application
@@ -79,7 +127,6 @@ public:
         initializeResourceGroups();
         setupScene();
         setupInputSystem();
-        setupCEGUI();
         createFrameListener();
         startRenderLoop();
     }
@@ -90,15 +137,12 @@ public:
 
         OIS::InputManager::destroyInputSystem(mInputManager);
 
-        CEGUI::OgreRenderer::destroySystem();
-
         delete mRoot;
     }
 
 private:
     Root *mRoot;
     OIS::InputManager *mInputManager;
-    CEGUI::OgreRenderer *mRenderer;
     ApplicationListener *mListener;
 
     void createRoot()
@@ -176,25 +220,6 @@ private:
         windowHndStr << windowHnd;
         pl.insert(std::make_pair(std::string("WINDOW"), windowHndStr.str()));
         mInputManager = OIS::InputManager::createInputSystem(pl);
-
-        /*try
-        {
-            mKeyboard = static_cast<OIS::Keyboard*>(mInputManager->createInputObject(OIS::OISKeyboard, false));
-            mMouse = static_cast<OIS::Mouse*>(mInputManager->createInputObject(OIS::OISMouse, false));
-            //mJoy = static_cast<OIS::JoyStick*>(mInputManager->createInputObject(OIS::OISJoyStick, false));
-        }
-        catch (const OIS::Exception &e)
-        {
-            throw new Exception(42, e.eText, "Application::setupInputSystem");
-        }*/
-    }
-
-    void setupCEGUI()
-    {
-        // CEGUI setup
-        mRenderer = &CEGUI::OgreRenderer::bootstrapSystem();
-
-        // Other CEGUI setup here.
     }
 
     void createFrameListener()
