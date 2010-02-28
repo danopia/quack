@@ -448,17 +448,6 @@ private:
         light = mSceneMgr->createLight("Light3");
         light->setType(Light::LT_POINT);
         light->setPosition(Vector3(0, 150, -250));
-        light->setSpecularColour(ColourValue::Red);
-
-        light = mSceneMgr->createLight("Light2");
-        light->setType(Light::LT_POINT);
-        light->setPosition(Vector3(-250, 150, 250));
-        light->setDiffuseColour(ColourValue::Blue);
-        light->setSpecularColour(ColourValue::Blue);
-
-        light = mSceneMgr->createLight("Light3");
-        light->setType(Light::LT_POINT);
-        light->setPosition(Vector3(0, 150, -250));
         light->setDiffuseColour(ColourValue::Green);
         light->setSpecularColour(ColourValue::Green);
 
