@@ -62,10 +62,11 @@ public:
         mCharDirection = Vector3::ZERO;
         mCowDirection = Vector3::ZERO;
 
-        // Set idle animation
-        mAnimationState = ent->getAnimationState("Walk");
-        mAnimationState->setLoop(true);
-        mAnimationState->setEnabled(true);
+
+
+        // Set default values for variables
+        mWalkSpeed = 50.0f;
+        mDirection = Vector3::ZERO;
     }
 
     ~ApplicationListener()
@@ -79,6 +80,15 @@ public:
     // in mWalkList.
     bool nextLocation()
     {
+        if (mWalkList.empty())
+            return false;
+
+        mDestination = mWalkList.front();  // this gets the front of the deque
+        mWalkList.pop_front();             // this removes the front of the deque
+
+        mDirection = mDestination - mNode->getPosition();
+        mDistance = mDirection.normalise();
+
         return true;
     }
 
@@ -91,6 +101,52 @@ public:
 
         mCamNode->translate(mCharDirection * evt.timeSinceLastFrame, Node::TS_LOCAL);
         mNode->translate(mCowDirection * evt.timeSinceLastFrame, Node::TS_LOCAL);
+
+       if (mDirection == Vector3::ZERO)
+       {
+           if (nextLocation())
+           {
+               // Set walking animation
+               mAnimationState = mEntity->getAnimationState("Walk");
+               mAnimationState->setLoop(true);
+               mAnimationState->setEnabled(true);
+           }
+       }
+        else
+        {
+            Real move = mWalkSpeed * evt.timeSinceLastFrame;
+            mDistance -= move;
+            if (mDistance <= 0.0f)
+            {
+                mNode->setPosition(mDestination);
+                mDirection = Vector3::ZERO;
+               // Set animation based on if the robot has another point to walk to.
+               if (! nextLocation())
+               {
+                   // Set Idle animation
+                   mAnimationState = mEntity->getAnimationState("Idle");
+                   mAnimationState->setLoop(true);
+                   mAnimationState->setEnabled(true);
+               }
+               else
+               {
+                   Vector3 src = mNode->getOrientation() * Vector3::UNIT_X;
+                   if ((1.0f + src.dotProduct(mDirection)) < 0.0001f)
+                   {
+                       mNode->yaw(Degree(180));
+                   }
+                   else
+                   {
+                       Ogre::Quaternion quat = src.getRotationTo(mDirection);
+                       mNode->rotate(quat);
+                   } // else
+               }
+           }
+            else
+            {
+                mNode->translate(mDirection * move);
+            } // else
+        } // if
 
         mAnimationState->addTime(evt.timeSinceLastFrame);
 
@@ -382,6 +438,17 @@ private:
         light->setPosition(Vector3(250, 150, 250));
         light->setDiffuseColour(ColourValue::Red);
         light->setSpecularColour(ColourValue::Red);
+
+        light = mSceneMgr->createLight("Light2");
+        light->setType(Light::LT_POINT);
+        light->setPosition(Vector3(-250, 150, 250));
+        light->setDiffuseColour(ColourValue::Blue);
+        light->setSpecularColour(ColourValue::Blue);
+
+        light = mSceneMgr->createLight("Light3");
+        light->setType(Light::LT_POINT);
+        light->setPosition(Vector3(0, 150, -250));
+        light->setDiffcularColour(ColourValue::Red);
 
         light = mSceneMgr->createLight("Light2");
         light->setType(Light::LT_POINT);
